@@ -55,6 +55,7 @@ export default function makeRemoteExecutableSchema({
   Object.keys(queries).forEach(key => {
     queryResolvers[key] = createResolver(fetcher);
   });
+
   let mutationResolvers: IResolverObject = {};
   const mutationType = schema.getMutationType();
   if (mutationType) {
@@ -64,10 +65,23 @@ export default function makeRemoteExecutableSchema({
     });
   }
 
+  let subscriptionResolvers: IResolverObject = {};
+  const subscriptionType = schema.getSubscriptionType();
+  if (subscriptionType) {
+    const subscriptions = subscriptionType.getFields();
+    Object.keys(subscriptions).forEach(key => {
+      subscriptionResolvers[key] = createResolver(fetcher);
+    });
+  }
+
   const resolvers: IResolvers = { [queryType.name]: queryResolvers };
 
   if (!isEmptyObject(mutationResolvers)) {
     resolvers[mutationType.name] = mutationResolvers;
+  }
+
+  if (!isEmptyObject(subscriptionResolvers)) {
+    resolvers[subscriptionType.name] = subscriptionResolvers;
   }
 
   const typeMap = schema.getTypeMap();
@@ -98,7 +112,8 @@ export default function makeRemoteExecutableSchema({
       type instanceof GraphQLObjectType &&
       type.name.slice(0, 2) !== '__' &&
       type !== queryType &&
-      type !== mutationType
+      type !== mutationType &&
+      type !== subscriptionType
     ) {
       const resolver = {};
       Object.keys(type.getFields()).forEach(field => {
