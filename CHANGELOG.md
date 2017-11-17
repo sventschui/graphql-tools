@@ -3,6 +3,7 @@
 ### VNEXT
 
 * Incompatible fragments are now properly filtered [PR #470](https://github.com/apollographql/graphql-tools/pull/470)
+* Added basic subscription support for local schemas [Issue #420](https://github.com/apollographql/graphql-tools/issues/420) [PR #463] (https://github.com/apollographql/graphql-tools/pull/463)
 * Add support to proxy subscriptions in `makeRemoteExecutableSchema` [Issue #420](https://github.com/apollographql/graphql-tools/issues/420)
 
 ### v2.7.1
