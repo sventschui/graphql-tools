@@ -81,6 +81,7 @@ export default function makeRemoteExecutableSchema({
   }
 
   if (!isEmptyObject(subscriptionResolvers)) {
+    // TODO: here we should add a reoslver that returns an
     resolvers[subscriptionType.name] = subscriptionResolvers;
   }
 
@@ -133,6 +134,8 @@ export default function makeRemoteExecutableSchema({
 
 function createResolver(fetcher: Fetcher): GraphQLFieldResolver<any, any> {
   return async (root, args, context, info) => {
+    // TODO: something is broken in subscriptions resolvers
+    console.log('resolve', root, args, context, info)
     const fragments = Object.keys(info.fragments).map(
       fragment => info.fragments[fragment],
     );
