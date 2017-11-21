@@ -1,0 +1,55 @@
+import { WebSocketLink } from 'apollo-link-ws';
+import { HttpLink } from 'apollo-link-http';
+import * as WebSocket from 'ws';
+import fetch from 'node-fetch';
+// import { ApolloClient } from 'apollo-client';
+import { subscribe } from 'graphql';
+// import { prepareSchema, graphqlReactive } from 'graphql-rxjs';
+// import { mockNetworkInterfaceWithSchema } from 'apollo-test-utils';
+// import { InMemoryCache } from 'apollo-cache-inmemory';
+import gql from 'graphql-tag';
+
+import makeRemoteExecutableSchema from './stitching/makeRemoteExecutableSchema';
+import introspectSchema from './stitching/introspectSchema';
+import makeSubscriptionDelegate from './stitching/makeSubscriptionDelegate';
+
+process.on('unhandledRejection', function(reason, p) {
+    console.log("Possibly Unhandled Rejection at: Promise ", p, " reason: ", reason);
+});
+
+(global as any).fetch = fetch;
+
+(Symbol as any).asyncIterator = Symbol("async");
+
+(async () => {
+  const wsLink = new WebSocketLink({ uri: 'ws://127.0.0.1:3001/subscriptions', webSocketImpl: WebSocket });
+  const link = new HttpLink({ uri: 'http://localhost:3001/graphql' });
+  const clientSchema = await introspectSchema(link);
+  const schema = (await makeRemoteExecutableSchema({
+    schema: clientSchema,
+    link,
+    subscribe: makeSubscriptionDelegate({ link: wsLink }),
+  }));
+
+  const result = await subscribe(schema, gql`
+    subscription Sub {
+      newMessage {
+        message {
+          messageId
+        }
+      }
+    }
+  `);
+
+  console.log('result', result);
+  console.log('result.next', (result as any).next);
+
+  while (true) {
+    console.log('awaiting...');
+    const item = await (result as any).next();
+
+    console.log('item', JSON.stringify(item));
+  }
+})();
+
+;

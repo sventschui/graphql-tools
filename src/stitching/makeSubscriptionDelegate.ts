@@ -21,7 +21,7 @@ export default function makeSubscriptionDelegate({ link }: MakeSubscriptionDeleg
     const observable = Observable.from(link.request({
       query: document,
       variables: info.variableValues,
-      operationName: info.operation.name.value,
+      operationName: info.operation && info.operation.name && info.operation.name.value,
       extensions: null,
       setContext: (context: Record<string, any>): Record<string, any> => { return context; },
       getContext: (): Record<string, any> => { return context },
