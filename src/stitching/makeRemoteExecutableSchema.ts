@@ -40,10 +40,12 @@ export default function makeRemoteExecutableSchema({
   schema,
   link,
   fetcher,
+  subscribe,
 }: {
   schema: GraphQLSchema;
   link?: ApolloLink;
   fetcher?: Fetcher;
+  subscribe?: GraphQLFieldResolver<any, any>
 }): GraphQLSchema {
   if (!fetcher && link) {
     fetcher = linkToFetcher(link);
@@ -68,9 +70,13 @@ export default function makeRemoteExecutableSchema({
   let subscriptionResolvers: IResolverObject = {};
   const subscriptionType = schema.getSubscriptionType();
   if (subscriptionType) {
+    if (!subscribe) {
+      throw new Error('A subscribe function is required when using the Subscription type');
+    }
+
     const subscriptions = subscriptionType.getFields();
     Object.keys(subscriptions).forEach(key => {
-      subscriptionResolvers[key] = createResolver(fetcher);
+      subscriptionResolvers[key] = { subscribe };
     });
   }
 
